@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Download, Eye, Trash2, Grid, List, Search, Filter } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useImageContext } from '../context/ImageContext';
+import { Download, Eye, Trash2, Grid, List, Search, Filter } from 'lucide-react';
 
 export default function Gallery() {
+  const { t } = useTranslation();
   const { generatedImages, removeGeneratedImage } = useImageContext();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,8 +12,7 @@ export default function Gallery() {
 
   const filteredImages = generatedImages
     .filter(img => 
-      img.prompt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      img.parameters.type.toLowerCase().includes(searchTerm.toLowerCase())
+      img.prompt.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
       switch (sortBy) {
@@ -48,9 +49,9 @@ export default function Gallery() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Image Gallery</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('gallery.title')}</h1>
           <p className="text-gray-600">
-            {filteredImages.length} of {generatedImages.length} images
+            {t('gallery.imagesCount', { filtered: filteredImages.length, total: generatedImages.length })}
           </p>
         </div>
 
@@ -93,7 +94,7 @@ export default function Gallery() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Search by prompt or type..."
+              placeholder={t('gallery.search')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="input-field pl-10"
@@ -108,9 +109,9 @@ export default function Gallery() {
               onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest' | 'prompt')}
               className="input-field min-w-0"
             >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="prompt">By Prompt</option>
+              <option value="newest">{t('gallery.newest')}</option>
+              <option value="oldest">{t('gallery.oldest')}</option>
+              <option value="prompt">{t('gallery.byPrompt')}</option>
             </select>
           </div>
         </div>
@@ -121,12 +122,12 @@ export default function Gallery() {
         <div className="card text-center py-12">
           <Eye className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {generatedImages.length === 0 ? 'No Images Generated Yet' : 'No Images Found'}
+            {generatedImages.length === 0 ? t('gallery.noImages') : t('gallery.noImagesFound')}
           </h3>
           <p className="text-gray-600">
             {generatedImages.length === 0
-              ? 'Start generating images to see them here'
-              : 'Try adjusting your search or filters'
+              ? t('gallery.noImagesDesc')
+              : t('gallery.noImagesFoundDesc')
             }
           </p>
         </div>
@@ -146,14 +147,14 @@ export default function Gallery() {
                   <button
                     onClick={() => handleDownload(image.url, `ceramic-${image.id}.jpg`)}
                     className="p-2 bg-white/90 hover:bg-white rounded-lg shadow-sm transition-colors"
-                    title="Download"
+                    title={t('gallery.download')}
                   >
                     <Download className="w-4 h-4 text-gray-700" />
                   </button>
                   <button
-                    onClick={async () => await removeGeneratedImage(image.id)}
+                    onClick={() => removeGeneratedImage(image.id)}
                     className="p-2 bg-red-500/90 hover:bg-red-500 rounded-lg shadow-sm transition-colors"
-                    title="Delete"
+                    title={t('gallery.delete')}
                   >
                     <Trash2 className="w-4 h-4 text-white" />
                   </button>
@@ -163,8 +164,7 @@ export default function Gallery() {
                   <p className="text-white font-medium text-sm mb-1 line-clamp-2">
                     {image.prompt}
                   </p>
-                  <div className="flex items-center justify-between text-white/80 text-xs">
-                    <span className="capitalize">{image.parameters.type.replace('-', ' ')}</span>
+                  <div className="flex items-center justify-end text-white/80 text-xs">
                     <span>{image.createdAt.toLocaleDateString()}</span>
                   </div>
                 </div>
@@ -186,20 +186,6 @@ export default function Gallery() {
                   <h3 className="font-medium text-gray-900 mb-2 line-clamp-2">
                     {image.prompt}
                   </h3>
-                  <div className="flex flex-wrap gap-2 text-sm text-gray-600 mb-3">
-                    <span className="px-2 py-1 bg-gray-100 rounded-md capitalize">
-                      {image.parameters.type.replace('-', ' ')}
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 rounded-md capitalize">
-                      {image.parameters.style}
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 rounded-md">
-                      {image.parameters.quality}
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 rounded-md">
-                      {image.parameters.aspectRatio}
-                    </span>
-                  </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-500">
                       {image.createdAt.toLocaleDateString()} at {image.createdAt.toLocaleTimeString()}
@@ -210,13 +196,13 @@ export default function Gallery() {
                         className="btn-secondary py-1 px-3 text-sm"
                       >
                         <Download className="w-3 h-3 mr-1" />
-                        Download
+                        {t('gallery.download')}
                       </button>
                       <button
-                        onClick={async () => await removeGeneratedImage(image.id)}
+                        onClick={() => removeGeneratedImage(image.id)}
                         className="text-red-600 hover:text-red-700 text-sm font-medium"
                       >
-                        Delete
+                        {t('gallery.delete')}
                       </button>
                     </div>
                   </div>

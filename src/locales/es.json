@@ -1,0 +1,93 @@
+{
+  "nav": {
+    "dashboard": "Panel",
+    "generate": "Generar",
+    "gallery": "Galería",
+    "references": "Referencias",
+    "settings": "Configuración"
+  },
+  "header": {
+    "title": "Generador de Modelos Cerámicos"
+  },
+  "dashboard": {
+    "title": "Generar Imágenes de Referencia",
+    "subtitle": "Crea imágenes generadas por IA para tus proyectos de modelado cerámico",
+    "getStarted": "Comenzar"
+  },
+  "generator": {
+    "title": "Generación de Imágenes",
+    "label": "Describe tu modelo cerámico",
+    "placeholder": "Describe la escultura cerámica que quieres crear. Sé específico sobre materiales, texturas, formas y estilos de referencia...",
+    "referenceHint": "💡 {{count}} imagen de referencia será utilizada para guiar la generación",
+    "referenceHint_plural": "💡 {{count}} imágenes de referencia serán utilizadas para guiar la generación",
+    "generate": "Generar Imagen",
+    "generating": "Generando..."
+  },
+  "gallery": {
+    "title": "Galería de Imágenes",
+    "imagesCount": "{{filtered}} de {{total}} imágenes",
+    "noImages": "Aún No Hay Imágenes Generadas",
+    "noImagesDesc": "Comienza a generar imágenes para verlas aquí",
+    "noImagesFound": "No Se Encontraron Imágenes",
+    "noImagesFoundDesc": "Intenta ajustar tu búsqueda o filtros",
+    "search": "Buscar por descripción...",
+    "newest": "Más Recientes Primero",
+    "oldest": "Más Antiguas Primero",
+    "byPrompt": "Por Descripción",
+    "download": "Descargar",
+    "delete": "Eliminar"
+  },
+  "references": {
+    "title": "Imágenes de Referencia",
+    "active": "Referencias Activas",
+    "noActive": "No hay referencias activas. Sube algunas imágenes de referencia para mejorar los resultados de generación.",
+    "upload": "Subir Imágenes",
+    "tips": "Consejos de Subida",
+    "tipsList": [
+      "Usa imágenes de alta calidad para mejores resultados",
+      "Incluye múltiples ángulos si es posible",
+      "Enfócate en las características clave que quieres capturar",
+      "Considera la iluminación y composición"
+    ]
+  },
+  "settings": {
+    "title": "Configuración",
+    "subtitle": "Configura tus preferencias del generador de modelos cerámicos",
+    "language": "Idioma",
+    "api": "Configuración de API",
+    "service": "Servicio de Generación de Imágenes IA",
+    "apiKey": "Clave API",
+    "apiKeyDesc": "Tu clave API se almacena de forma segura y nunca se comparte",
+    "generation": "Valores Predeterminados de Generación",
+    "quality": "Calidad Predeterminada",
+    "aspectRatio": "Relación de Aspecto Predeterminada",
+    "firebase": "Configuración de Firebase",
+    "projectId": "ID del Proyecto",
+    "storageBucket": "Bucket de Almacenamiento",
+    "firebaseInstructions": "Instrucciones de Configuración de Firebase",
+    "firebaseSteps": [
+      "Crea un proyecto de Firebase en console.firebase.google.com",
+      "Habilita Firebase Storage y Firestore",
+      "Obtén tu configuración del proyecto desde Configuración del Proyecto",
+      "Actualiza la configuración de Firebase en src/context/FirebaseContext.tsx"
+    ],
+    "storage": "Almacenamiento y Datos",
+    "localStorage": "Almacenamiento Local",
+    "localStorageDesc": "Borrar todas las imágenes y datos almacenados localmente",
+    "export": "Exportar Datos",
+    "exportDesc": "Descarga todas tus imágenes generadas y configuraciones",
+    "clearAll": "Borrar Todos los Datos",
+    "about": "Acerca de",
+    "version": "Versión",
+    "builtWith": "Construido con",
+    "purpose": "Propósito",
+    "save": "Guardar Configuración"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito"
+  }
+}

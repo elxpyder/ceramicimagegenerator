@@ -3,15 +3,22 @@ import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
-import { useFirebaseConfig } from './FirebaseConfigContext';
+
+// Firebase configuration - replace with your actual config
+const firebaseConfig = {
+  apiKey: "your-api-key",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "your-app-id"
+};
 
 interface FirebaseContextType {
   app: FirebaseApp;
   storage: FirebaseStorage;
   firestore: Firestore;
   auth: Auth;
-  isInitialized: boolean;
-  error: string | null;
 }
 
 const FirebaseContext = createContext<FirebaseContextType | null>(null);
@@ -29,44 +36,25 @@ interface FirebaseProviderProps {
 }
 
 export function FirebaseProvider({ children }: FirebaseProviderProps) {
-  const { config } = useFirebaseConfig();
   const [firebaseServices, setFirebaseServices] = useState<FirebaseContextType | null>(null);
 
   useEffect(() => {
-    try {
-      // Initialize Firebase
-      const app = initializeApp(config);
-      const storage = getStorage(app);
-      const firestore = getFirestore(app);
-      const auth = getAuth(app);
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+    const firestore = getFirestore(app);
+    const auth = getAuth(app);
 
-      setFirebaseServices({
-        app,
-        storage,
-        firestore,
-        auth,
-        isInitialized: true,
-        error: null,
-      });
-    } catch (error) {
-      console.error('Firebase initialization error:', error);
-      setFirebaseServices({
-        app: null as any,
-        storage: null as any,
-        firestore: null as any,
-        auth: null as any,
-        isInitialized: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  }, [config]);
+    setFirebaseServices({
+      app,
+      storage,
+      firestore,
+      auth,
+    });
+  }, []);
 
   if (!firebaseServices) {
     return <div>Loading Firebase...</div>;
-  }
-
-  if (firebaseServices.error) {
-    return <div>Error initializing Firebase: {firebaseServices.error}</div>;
   }
 
   return (

@@ -1,0 +1,93 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "generate": "Generate",
+    "gallery": "Gallery",
+    "references": "References",
+    "settings": "Settings"
+  },
+  "header": {
+    "title": "Ceramic Model Generator"
+  },
+  "dashboard": {
+    "title": "Generate Reference Images",
+    "subtitle": "Create AI-generated images for your ceramic modeling projects",
+    "getStarted": "Get Started"
+  },
+  "generator": {
+    "title": "Image Generation",
+    "label": "Describe your ceramic model",
+    "placeholder": "Describe the ceramic sculpture you want to create. Be specific about materials, textures, shapes, and any reference styles...",
+    "referenceHint": "💡 {{count}} reference image will be used to guide the generation",
+    "referenceHint_plural": "💡 {{count}} reference images will be used to guide the generation",
+    "generate": "Generate Image",
+    "generating": "Generating..."
+  },
+  "gallery": {
+    "title": "Image Gallery",
+    "imagesCount": "{{filtered}} of {{total}} images",
+    "noImages": "No Images Generated Yet",
+    "noImagesDesc": "Start generating images to see them here",
+    "noImagesFound": "No Images Found",
+    "noImagesFoundDesc": "Try adjusting your search or filters",
+    "search": "Search by prompt...",
+    "newest": "Newest First",
+    "oldest": "Oldest First",
+    "byPrompt": "By Prompt",
+    "download": "Download",
+    "delete": "Delete"
+  },
+  "references": {
+    "title": "Reference Images",
+    "active": "Active References",
+    "noActive": "No active references. Upload some reference images to improve generation results.",
+    "upload": "Upload Images",
+    "tips": "Upload Tips",
+    "tipsList": [
+      "Use high-quality images for best results",
+      "Include multiple angles if possible",
+      "Focus on the key features you want to capture",
+      "Consider lighting and composition"
+    ]
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Configure your ceramic model generator preferences",
+    "language": "Language",
+    "api": "API Configuration",
+    "service": "AI Image Generation Service",
+    "apiKey": "API Key",
+    "apiKeyDesc": "Your API key is stored securely and never shared",
+    "generation": "Generation Defaults",
+    "quality": "Default Quality",
+    "aspectRatio": "Default Aspect Ratio",
+    "firebase": "Firebase Configuration",
+    "projectId": "Project ID",
+    "storageBucket": "Storage Bucket",
+    "firebaseInstructions": "Firebase Setup Instructions",
+    "firebaseSteps": [
+      "Create a Firebase project at console.firebase.google.com",
+      "Enable Firebase Storage and Firestore",
+      "Get your project configuration from Project Settings",
+      "Update the Firebase config in src/context/FirebaseContext.tsx"
+    ],
+    "storage": "Storage & Data",
+    "localStorage": "Local Storage",
+    "localStorageDesc": "Clear all locally stored images and data",
+    "export": "Export Data",
+    "exportDesc": "Download all your generated images and settings",
+    "clearAll": "Clear All Data",
+    "about": "About",
+    "version": "Version",
+    "builtWith": "Built with",
+    "purpose": "Purpose",
+    "save": "Save Settings"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  }
+}

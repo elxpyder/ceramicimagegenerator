@@ -1,3 +1,4 @@
+
 import { useImageContext } from '../context/ImageContext';
 import { Palette, Image, FolderOpen, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';

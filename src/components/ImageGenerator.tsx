@@ -1,19 +1,37 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useImageContext } from '../context/ImageContext';
+import { useNotification } from '../context/NotificationContext';
 import { GeneratedImage } from '../types';
-import { Palette, RotateCcw } from 'lucide-react';
+import { RotateCcw, Download } from 'lucide-react';
 
 export default function ImageGenerator() {
-  const { addGeneratedImage, referenceImages, isGenerating, setIsGenerating } = useImageContext();
+  const { t } = useTranslation();
+  const { addGeneratedImage, referenceImages, isGenerating, setIsGenerating, generatedImages } = useImageContext();
+  const { addToast } = useNotification();
+  const navigate = useNavigate();
+
   const [prompt, setPrompt] = useState('');
+  const [lastGeneratedImage, setLastGeneratedImage] = useState<GeneratedImage | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
+
   const activeReferences = referenceImages.filter(img => img.isActive);
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || isGenerating) return;
+
     setIsGenerating(true);
 
     try {
-      // Call Gemini Imagen API via Firebase Cloud Function
+      // Get active reference image URLs
+      const referenceUrls = activeReferences.map(ref => ref.url);
+
+      console.log('Active references found:', activeReferences.length);
+
+      addToast(t('common.loading'), 'info');
+
+      // Call the API
       const response = await fetch('https://api-5irvh6jqca-uc.a.run.app/generate-image', {
         method: 'POST',
         headers: {
@@ -21,59 +39,90 @@ export default function ImageGenerator() {
         },
         body: JSON.stringify({
           prompt: prompt,
-          referenceImages: activeReferences.map(ref => ref.url),
-        }),
+          referenceImages: referenceUrls
+        })
       });
 
+      console.log('API Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API Error response:', errorData);
+        throw new Error(errorData.error || `API error: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('API Response:', data);
 
-      if (!data.imageUrl) {
-        throw new Error('No image URL received from API');
+      // Extract the generated image from the response
+      const candidates = data.candidates || [];
+      if (candidates.length === 0) {
+        throw new Error('No images generated');
       }
 
-      const newImage: GeneratedImage = {
-        id: Date.now().toString(),
-        url: data.imageUrl,
-        prompt: prompt,
-        parameters: {
-          type: 'ceramic-model',
-          style: 'realistic',
-          description: prompt,
-          quality: 'high',
-          aspectRatio: '1:1'
-        },
-        createdAt: new Date()
-      };
+      const imageData = candidates[0].content.parts[0].inlineData;
+      if (!imageData || !imageData.data) {
+        throw new Error('Invalid image data format');
+      }
 
-      await addGeneratedImage(newImage);
-      setPrompt('');
-    } catch (error) {
-      console.error('Generation failed:', error);
-      // For now, fall back to placeholder if API fails
-      console.warn('Falling back to placeholder image due to API error');
-      const randomNum = Math.floor(Math.random() * 1000);
-      const imageUrl = `https://picsum.photos/512/512?random=${randomNum}`;
+      // Validate base64 data
+      if (!imageData.data || typeof imageData.data !== 'string') {
+        throw new Error('Invalid base64 image data');
+      }
+
+      // Create base64 image URL
+      const imageUrl = `data:image/png;base64,${imageData.data}`;
 
       const newImage: GeneratedImage = {
         id: Date.now().toString(),
         url: imageUrl,
         prompt: prompt,
         parameters: {
-          type: 'ceramic-model',
+          type: 'custom',
           style: 'realistic',
-          description: prompt,
+          description: '',
           quality: 'high',
           aspectRatio: '1:1'
         },
         createdAt: new Date()
       };
 
-      await addGeneratedImage(newImage);
+      // Test the image URL before adding it
+      await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => reject(new Error('Generated image is not valid'));
+        img.src = imageUrl;
+      });
+
+      // Check storage usage before adding
+      if (generatedImages.length >= 15) {
+        addToast('You have many images stored. Old images may be cleared automatically.', 'info');
+      }
+
+      addGeneratedImage(newImage);
+
+      // Store locally for immediate display
+      setLastGeneratedImage(newImage);
+      setImageLoading(true);
+
+      // Clear form
       setPrompt('');
+
+      // Show success notification
+      addToast(t('common.success'), 'success');
+
+    } catch (error) {
+      console.error('Generation failed:', error);
+
+      // Check if it's a storage quota error
+      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        addToast('Storage full! Old images have been cleared to make space.', 'error');
+      } else {
+        const errorMessage = error instanceof Error ? error.message : t('common.error');
+        addToast(`${t('common.error')}: ${errorMessage}`, 'error');
+      }
+      setImageLoading(false);
     } finally {
       setIsGenerating(false);
     }
@@ -83,57 +132,78 @@ export default function ImageGenerator() {
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Generate Reference Images
+          {t('generator.title')}
         </h1>
         <p className="text-gray-600">
-          Create AI-generated images for your ceramic modeling projects
+          {t('dashboard.subtitle')}
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Generation Form */}
         <div className="lg:col-span-2 space-y-6">
           <div className="card">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
-              Generation Parameters
+              {t('generator.title')}
             </h2>
 
+            {/* Prompt */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Detailed Description
+                {t('generator.label')}
               </label>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                rows={4}
+                rows={6}
                 className="input-field resize-none"
-                placeholder="Describe your desired ceramic model in detail..."
+                placeholder={t('generator.placeholder')}
               />
+              {activeReferences.length > 0 && (
+                <p className="text-xs text-blue-600 mt-2">
+                  {t('generator.referenceHint', { count: activeReferences.length })}
+                </p>
+              )}
             </div>
 
+            {/* Generate Button */}
             <button
               onClick={handleGenerate}
               disabled={isGenerating || !prompt.trim()}
-              className="w-full flex items-center justify-center space-x-2 py-3 px-6 rounded-lg font-medium transition-colors bg-primary-600 hover:bg-primary-700 text-white disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+              className={`
+                w-full flex items-center justify-center space-x-2 py-3 px-6 rounded-lg font-medium transition-colors
+                ${isGenerating || !prompt.trim()
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-primary-600 hover:bg-primary-700 text-white'
+                }
+              `}
             >
               {isGenerating ? (
                 <>
                   <RotateCcw className="w-5 h-5 animate-spin" />
-                  <span>Generating...</span>
+                  <span>{t('generator.generating')}</span>
                 </>
               ) : (
                 <>
-                  <Palette className="w-5 h-5" />
-                  <span>Generate Image</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                    <circle cx="13.5" cy="6.5" r=".5"></circle>
+                    <circle cx="17.5" cy="10.5" r=".5"></circle>
+                    <circle cx="8.5" cy="7.5" r=".5"></circle>
+                    <circle cx="6.5" cy="12.5" r=".5"></circle>
+                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+                  </svg>
+                  <span>{t('generator.generate')}</span>
                 </>
               )}
             </button>
           </div>
         </div>
 
+        {/* Active References Sidebar */}
         <div className="space-y-6">
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Active References
+              {t('references.active')}
             </h3>
             {activeReferences.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
@@ -149,12 +219,129 @@ export default function ImageGenerator() {
               </div>
             ) : (
               <p className="text-gray-500 text-sm">
-                No active references. Upload some reference images to improve generation results.
+                {t('references.noActive')}
               </p>
             )}
           </div>
+
+          {/* Generation Tips */}
+          <div className="card">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              {t('references.tips')}
+            </h3>
+            <ul className="text-sm text-gray-600 space-y-2">
+              {(t('references.tipsList', { returnObjects: true }) as string[]).map((tip: string, index: number) => (
+                <li key={index}>• {tip}</li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
+
+      {/* Generated Image Display */}
+      {lastGeneratedImage && (
+        <div className="card">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {t('gallery.title')} - {t('common.success')}
+            </h2>
+            <button
+              onClick={() => navigate('/gallery')}
+              className="btn-secondary"
+            >
+              {t('gallery.title')}
+            </button>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Image */}
+            <div className="flex-1">
+              <div className="aspect-square max-w-md mx-auto lg:mx-0 relative">
+                {imageLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+                    <div className="text-center">
+                      <RotateCcw className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">Loading image...</p>
+                    </div>
+                  </div>
+                )}
+                <img
+                  src={lastGeneratedImage.url}
+                  alt={lastGeneratedImage.prompt}
+                  className={`w-full h-full object-cover rounded-lg shadow-lg ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity`}
+                  onLoad={() => setImageLoading(false)}
+                  onError={(e) => {
+                    console.error('Image failed to load:', e);
+                    addToast('Generated image failed to display', 'error');
+                    setLastGeneratedImage(null);
+                    setImageLoading(false);
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Details and Actions */}
+            <div className="flex-1 space-y-4">
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">
+                  {t('generator.label')}
+                </h3>
+                <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">
+                  {lastGeneratedImage.prompt}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500">
+                  {t('common.success')} - {lastGeneratedImage.createdAt.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => {
+                    setPrompt(lastGeneratedImage.prompt);
+                    setLastGeneratedImage(null);
+                  }}
+                  className="btn-secondary flex-1"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  {t('generator.generate')} Again
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch(lastGeneratedImage.url);
+                      const blob = await response.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = `ceramic-${lastGeneratedImage.id}.png`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      window.URL.revokeObjectURL(url);
+                      addToast(t('gallery.download'), 'success');
+                    } catch (error) {
+                      addToast(t('common.error'), 'error');
+                    }
+                  }}
+                  className="btn-secondary flex-1"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  {t('gallery.download')}
+                </button>
+                <button
+                  onClick={() => navigate('/gallery')}
+                  className="btn-primary flex-1"
+                >
+                  {t('gallery.title')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
