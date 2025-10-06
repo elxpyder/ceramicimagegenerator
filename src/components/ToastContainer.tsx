@@ -1,4 +1,4 @@
-import { useNotification } from '../context/NotificationContext';
+import { useNotification, Toast } from '../context/NotificationContext.tsx';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
 export default function ToastContainer() {
@@ -8,7 +8,7 @@ export default function ToastContainer() {
 
   return (
     <div className="fixed top-4 right-4 z-50 space-y-2">
-      {toasts.map((toast) => {
+      {toasts.map((toast: Toast) => {
         const Icon = toast.type === 'success' ? CheckCircle :
                     toast.type === 'error' ? AlertCircle : Info;
 

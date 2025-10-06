@@ -19,6 +19,8 @@ interface FirebaseContextType {
   storage: FirebaseStorage;
   firestore: Firestore;
   auth: Auth;
+  isInitialized: boolean;
+  error: string | null;
 }
 
 const FirebaseContext = createContext<FirebaseContextType | null>(null);
@@ -37,24 +39,38 @@ interface FirebaseProviderProps {
 
 export function FirebaseProvider({ children }: FirebaseProviderProps) {
   const [firebaseServices, setFirebaseServices] = useState<FirebaseContextType | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const storage = getStorage(app);
-    const firestore = getFirestore(app);
-    const auth = getAuth(app);
+    try {
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const storage = getStorage(app);
+      const firestore = getFirestore(app);
+      const auth = getAuth(app);
 
-    setFirebaseServices({
-      app,
-      storage,
-      firestore,
-      auth,
-    });
+      setFirebaseServices({
+        app,
+        storage,
+        firestore,
+        auth,
+        isInitialized: true,
+        error: null,
+      });
+      setIsInitialized(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to initialize Firebase');
+      setIsInitialized(true);
+    }
   }, []);
 
-  if (!firebaseServices) {
+  if (!isInitialized) {
     return <div>Loading Firebase...</div>;
+  }
+
+  if (error) {
+    return <div>Error initializing Firebase: {error}</div>;
   }
 
   return (

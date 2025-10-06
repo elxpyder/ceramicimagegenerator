@@ -19,37 +19,54 @@ app.post('/generate-image', async (req, res) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    // Gemini API key and endpoint for editing
+    // Gemini API key - using the correct model for image generation and editing
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBbknbJqkMrH0PQBL2GktXybmGk_0ghOME';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`;
 
-    // Build parts array
+    // Build parts array following Gemini documentation for image editing
     const parts = [];
-    // Add reference images first if they exist
-    if (referenceImages && referenceImages.length > 0) {
-      referenceImages.slice(0, 4).forEach(refUrl => {
-        const match = refUrl.match(/^data:(image\/[a-z]+);base64,/);
-        if (!match) return;
+
+    // For editing mode: Add the target image first, then the edit instructions
+    if (editMode && referenceImages && referenceImages.length > 0) {
+      // Add the primary reference image to edit
+      const primaryImage = referenceImages[0]; // Use first image as the target for editing
+      const match = primaryImage.match(/^data:(image\/[a-z]+);base64,/);
+      if (match) {
         const mimeType = match[1];
-        const base64Data = refUrl.replace(/^data:image\/[a-z]+;base64,/, '');
+        const base64Data = primaryImage.replace(/^data:image\/[a-z]+;base64,/, '');
         parts.push({
           inlineData: {
             mimeType,
             data: base64Data
           }
         });
+      }
+
+      // Add specific editing instructions following Gemini documentation patterns
+      parts.push({
+        text: `Edit this ceramic sculpture image with the following changes: ${prompt}. Maintain the ceramic material properties, clay-like textures, and sculptural form while making the requested modifications. Preserve the artistic integrity and craftsmanship details.`
       });
-    }
-    // Add text prompt
-    if (editMode && referenceImages && referenceImages.length > 0) {
-      // For editing mode, use edit-specific prompt structure
-      parts.push({ 
-        text: `Edit this image: ${prompt}. Create a ceramic sculpture based on this reference with the following modifications: ${prompt}`
-      });
+
     } else {
-      // For generation mode, use ceramic-specific prompt
-      parts.push({ 
-        text: `Generate a high-quality ceramic sculpture image. ${prompt}. Style: Realistic ceramic sculpture with detailed textures, natural clay appearance, and professional pottery craftsmanship. Show clay-like surfaces, ceramic glazes, and sculptural forms.`
+      // For generation mode: Add reference images for style guidance, then prompt
+      if (referenceImages && referenceImages.length > 0) {
+        referenceImages.slice(0, 3).forEach(refUrl => { // Limit to 3 for better performance
+          const match = refUrl.match(/^data:(image\/[a-z]+);base64,/);
+          if (!match) return;
+          const mimeType = match[1];
+          const base64Data = refUrl.replace(/^data:image\/[a-z]+;base64,/, '');
+          parts.push({
+            inlineData: {
+              mimeType,
+              data: base64Data
+            }
+          });
+        });
+      }
+
+      // Enhanced generation prompt following Gemini best practices
+      parts.push({
+        text: `Generate a high-quality, photorealistic ceramic sculpture image: ${prompt}. Create detailed clay-like surfaces with natural ceramic textures, professional pottery craftsmanship, and sculptural forms. Include realistic glazing effects, surface imperfections, and artistic detailing that shows the handmade ceramic quality.`
       });
     }
 
@@ -61,10 +78,11 @@ app.post('/generate-image', async (req, res) => {
         }
       ],
       generationConfig: {
-        temperature: 0.7,
+        temperature: 0.8, // Slightly higher for more creative image generation
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 8192
+        maxOutputTokens: 8192,
+        responseModalities: ['Text', 'Image'] // Explicitly request image responses
       },
       safetySettings: [
         {
@@ -72,7 +90,7 @@ app.post('/generate-image', async (req, res) => {
           threshold: "BLOCK_MEDIUM_AND_ABOVE"
         },
         {
-          category: "HARM_CATEGORY_HATE_SPEECH", 
+          category: "HARM_CATEGORY_HATE_SPEECH",
           threshold: "BLOCK_MEDIUM_AND_ABOVE"
         },
         {
