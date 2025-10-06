@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read/write their own documents
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Allow public read access to reference images
+    match /references/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Allow public access to reference images collection
+    match /referenceImages/{allPaths=**} {
+      allow read, write: if true;
+    }
+    
+    // Allow public access to generated images collection
+    match /generatedImages/{allPaths=**} {
+      allow read, write: if true;
+    }
+  }
+}
