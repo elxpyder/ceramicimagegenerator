@@ -36,7 +36,7 @@ export default function ImageGenerator() {
 
       console.log('Active references found:', activeReferences.length);
 
-      addToast(editMode ? 'Starting image editing...' : 'Starting image generation...', 'info');
+      addToast(t('common.loading'), 'info');
 
       // Call the API
       const response = await fetch('https://api-5irvh6jqca-uc.a.run.app/generate-image', {
@@ -118,7 +118,7 @@ export default function ImageGenerator() {
       setPrompt('');
 
       // Show success notification
-      addToast(editMode ? 'Image edited successfully! Image is loading...' : 'Image generated successfully! Image is loading...', 'success');
+      addToast(editMode ? 'Image edited successfully!' : t('common.success'), 'success');
 
     } catch (error) {
       console.error('Generation failed:', error);
@@ -335,10 +335,7 @@ export default function ImageGenerator() {
                   src={lastGeneratedImage.url}
                   alt={lastGeneratedImage.prompt}
                   className={`w-full h-full object-cover rounded-lg shadow-lg ${imageLoading ? 'opacity-0' : 'opacity-100'} transition-opacity`}
-                  onLoad={() => {
-                    setImageLoading(false);
-                    addToast(editMode ? 'Edited image ready!' : 'Generated image ready!', 'success');
-                  }}
+                  onLoad={() => setImageLoading(false)}
                   onError={(e) => {
                     console.error('Image failed to load:', e);
                     addToast('Generated image failed to display', 'error');
@@ -380,7 +377,6 @@ export default function ImageGenerator() {
                 <button
                   onClick={async () => {
                     try {
-                      addToast('Starting download...', 'info');
                       const response = await fetch(lastGeneratedImage.url);
                       const blob = await response.blob();
                       const url = window.URL.createObjectURL(blob);
@@ -391,9 +387,9 @@ export default function ImageGenerator() {
                       link.click();
                       document.body.removeChild(link);
                       window.URL.revokeObjectURL(url);
-                      addToast('Download completed!', 'success');
+                      addToast(t('gallery.download'), 'success');
                     } catch (error) {
-                      addToast('Download failed', 'error');
+                      addToast(t('common.error'), 'error');
                     }
                   }}
                   className="btn-secondary flex-1"
