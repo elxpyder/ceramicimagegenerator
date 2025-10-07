@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
-import Gallery from './components/Gallery';
 import ImageGenerator from './components/ImageGenerator';
 import ReferenceManager from './components/ReferenceManager';
 import Settings from './components/Settings';
@@ -24,7 +23,7 @@ function App() {
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/generate" element={<ImageGenerator />} />
-                    <Route path="/gallery" element={<Gallery />} />
+                    {/* <Route path="/gallery" element={<Gallery />} /> */}
                     <Route path="/references" element={<ReferenceManager />} />
                     <Route path="/settings" element={<Settings />} />
                   </Routes>

@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from 'react-router-dom';
-import { Palette, Image, FolderOpen, Settings, Home, Globe } from 'lucide-react';
+import { Palette, FolderOpen, Settings, Home, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function Header() {
@@ -10,7 +10,6 @@ export default function Header() {
   const navigation = [
     { name: t('nav.dashboard'), href: '/', icon: Home },
     { name: t('nav.generate'), href: '/generate', icon: Palette },
-    { name: t('nav.gallery'), href: '/gallery', icon: Image },
     { name: t('nav.references'), href: '/references', icon: FolderOpen },
     { name: t('nav.settings'), href: '/settings', icon: Settings },
   ];

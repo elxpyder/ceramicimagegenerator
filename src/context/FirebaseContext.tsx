@@ -4,14 +4,14 @@ import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
 
-// Firebase configuration - replace with your actual config
+// Firebase configuration
 const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "your-app-id"
+  apiKey: "AIzaSyDB6IjnMYQNhU3GPYzgdDAEGoT_DuAbuaE",
+  authDomain: "ceramic-model-generator.firebaseapp.com",
+  projectId: "ceramic-model-generator",
+  storageBucket: "ceramic-model-generator.firebasestorage.app",
+  messagingSenderId: "121028790771",
+  appId: "1:121028790771:web:9bdd588822fe1081ea2a86"
 };
 
 interface FirebaseContextType {

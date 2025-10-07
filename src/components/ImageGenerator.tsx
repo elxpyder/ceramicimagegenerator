@@ -8,7 +8,7 @@ import { RotateCcw, Download, Edit } from 'lucide-react';
 
 export default function ImageGenerator() {
   const { t } = useTranslation();
-  const { addGeneratedImage, referenceImages, isGenerating, setIsGenerating, generatedImages } = useImageContext();
+  const { addGeneratedImage, referenceImages, isGenerating, setIsGenerating, convertImageToBase64 } = useImageContext();
   const { addToast } = useNotification();
   const navigate = useNavigate();
 
@@ -17,13 +17,13 @@ export default function ImageGenerator() {
   const [imageLoading, setImageLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
-  const activeReferences = referenceImages.filter(img => img.isActive);
+  const allActiveReferences = referenceImages.filter(img => img.isActive);
 
   const handleGenerate = async () => {
     if (!prompt.trim() || isGenerating) return;
 
     // Validate edit mode requirements
-    if (editMode && activeReferences.length === 0) {
+    if (editMode && allActiveReferences.length === 0) {
       addToast('Edit mode requires at least one active reference image', 'error');
       return;
     }
@@ -32,13 +32,28 @@ export default function ImageGenerator() {
 
     try {
       // Get active reference image URLs
-      const referenceUrls = activeReferences.map(ref => ref.url);
+      const referenceUrls = allActiveReferences.map(ref => ref.url);
+      console.log('Active references found:', allActiveReferences.length);
+      console.log('Reference URLs:', referenceUrls);
 
-      console.log('Active references found:', activeReferences.length);
+      // Convert Firebase Storage URLs to base64
+      let referenceImages: string[] = [];
+      if (referenceUrls.length > 0) {
+        console.log('Converting reference images to base64...');
+        referenceImages = await Promise.all(referenceUrls.map(async (url) => {
+          console.log('Converting URL using context method:', url);
+          const base64Data = await convertImageToBase64(url);
+          // Format as data URL for the API
+          const dataUrl = `data:image/jpeg;base64,${base64Data}`;
+          console.log('Formatted as data URL, length:', dataUrl.length);
+          return dataUrl;
+        }));
+        console.log('Base64 conversion complete, image count:', referenceImages.length);
+      }
 
       addToast(t('common.loading'), 'info');
 
-      // Call the API
+      // Call the API with base64 images
       const response = await fetch('https://api-5irvh6jqca-uc.a.run.app/generate-image', {
         method: 'POST',
         headers: {
@@ -46,7 +61,7 @@ export default function ImageGenerator() {
         },
         body: JSON.stringify({
           prompt: prompt,
-          referenceImages: referenceUrls,
+          referenceImages: referenceImages, // Now base64 strings
           editMode: editMode
         })
       });
@@ -92,7 +107,8 @@ export default function ImageGenerator() {
           quality: 'high',
           aspectRatio: '1:1'
         },
-        createdAt: new Date()
+        createdAt: new Date(),
+        isActive: false
       };
 
       // Test the image URL before adding it
@@ -104,11 +120,13 @@ export default function ImageGenerator() {
       });
 
       // Check storage usage before adding
-      if (generatedImages.length >= 15) {
+      if (referenceImages.length >= 15) {
         addToast('You have many images stored. Old images may be cleared automatically.', 'info');
       }
 
+      console.log('About to call addGeneratedImage with:', newImage);
       addGeneratedImage(newImage);
+      console.log('addGeneratedImage called successfully');
 
       // Store locally for immediate display
       setLastGeneratedImage(newImage);
@@ -175,13 +193,13 @@ export default function ImageGenerator() {
                       ? 'bg-primary-600 text-white' 
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
-                  disabled={activeReferences.length === 0}
+                  disabled={allActiveReferences.length === 0}
                 >
                   <Edit className="w-4 h-4 mr-2 inline" />
                   Edit Image
                 </button>
               </div>
-              {editMode && activeReferences.length === 0 && (
+              {editMode && allActiveReferences.length === 0 && (
                 <p className="text-sm text-amber-600 mt-2">
                   ⚠️ Edit mode requires at least one active reference image
                 </p>
@@ -204,11 +222,11 @@ export default function ImageGenerator() {
                     : t('generator.placeholder')
                 }
               />
-              {activeReferences.length > 0 && (
+              {allActiveReferences.length > 0 && (
                 <p className="text-xs text-blue-600 mt-2">
                   {editMode 
-                    ? `🎨 Editing based on ${activeReferences.length} reference image${activeReferences.length > 1 ? 's' : ''}`
-                    : t('generator.referenceHint', { count: activeReferences.length })
+                    ? `🎨 Editing based on ${allActiveReferences.length} reference image${allActiveReferences.length > 1 ? 's' : ''}`
+                    : t('generator.referenceHint', { count: allActiveReferences.length })
                   }
                 </p>
               )}
@@ -217,10 +235,10 @@ export default function ImageGenerator() {
             {/* Generate Button */}
             <button
               onClick={handleGenerate}
-              disabled={isGenerating || !prompt.trim() || (editMode && activeReferences.length === 0)}
+              disabled={isGenerating || !prompt.trim() || (editMode && allActiveReferences.length === 0)}
               className={`
                 w-full flex items-center justify-center space-x-2 py-3 px-6 rounded-lg font-medium transition-colors
-                ${isGenerating || !prompt.trim() || (editMode && activeReferences.length === 0)
+                ${isGenerating || !prompt.trim() || (editMode && allActiveReferences.length === 0)
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-primary-600 hover:bg-primary-700 text-white'
                 }
@@ -257,9 +275,9 @@ export default function ImageGenerator() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {t('references.active')}
             </h3>
-            {activeReferences.length > 0 ? (
+            {allActiveReferences.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
-                {activeReferences.map(ref => (
+                {allActiveReferences.map(ref => (
                   <div key={ref.id} className="aspect-square relative">
                     <img
                       src={ref.url}

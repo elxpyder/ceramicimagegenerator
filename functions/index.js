@@ -50,23 +50,29 @@ app.post('/generate-image', async (req, res) => {
     } else {
       // For generation mode: Add reference images for style guidance, then prompt
       if (referenceImages && referenceImages.length > 0) {
-        referenceImages.slice(0, 3).forEach(refUrl => { // Limit to 3 for better performance
+        console.log(`Processing ${referenceImages.length} reference images for generation mode`);
+        referenceImages.slice(0, 3).forEach((refUrl, index) => { // Limit to 3 for better performance
+          console.log(`Processing reference image ${index + 1}:`, refUrl.substring(0, 50) + '...');
           const match = refUrl.match(/^data:(image\/[a-z]+);base64,/);
-          if (!match) return;
-          const mimeType = match[1];
-          const base64Data = refUrl.replace(/^data:image\/[a-z]+;base64,/, '');
-          parts.push({
-            inlineData: {
-              mimeType,
-              data: base64Data
-            }
-          });
+          if (match) {
+            const mimeType = match[1];
+            const base64Data = refUrl.replace(/^data:image\/[a-z]+;base64,/, '');
+            console.log(`Reference image ${index + 1} - MIME type: ${mimeType}, Base64 length: ${base64Data.length}`);
+            parts.push({
+              inlineData: {
+                mimeType,
+                data: base64Data
+              }
+            });
+          } else {
+            console.warn(`Reference image ${index + 1} does not match expected data URL format`);
+          }
         });
       }
 
       // Enhanced generation prompt following Gemini best practices
       parts.push({
-        text: `Generate a high-quality, photorealistic ceramic sculpture image: ${prompt}. Create detailed clay-like surfaces with natural ceramic textures, professional pottery craftsmanship, and sculptural forms. Include realistic glazing effects, surface imperfections, and artistic detailing that shows the handmade ceramic quality.`
+        text: `Generate a high-quality, photorealistic ceramic sculpture image based on the provided reference image(s): ${prompt}. Create detailed clay-like surfaces with natural ceramic textures, professional pottery craftsmanship, and sculptural forms. Include realistic glazing effects, surface imperfections, and artistic detailing that shows the handmade ceramic quality. Use the reference image(s) as inspiration for style, composition, and form.`
       });
     }
 
@@ -166,6 +172,36 @@ app.post('/generate-image', async (req, res) => {
   } catch (error) {
     console.error('Error generating image:', error);
     res.status(500).json({ error: error.message || 'Failed to generate image' });
+  }
+});
+
+// CORS proxy for Firebase Storage images
+app.post('/convert-image', async (req, res) => {
+  try {
+    const { imageUrl } = req.body;
+    
+    if (!imageUrl) {
+      return res.status(400).json({ error: "imageUrl is required" });
+    }
+    
+    console.log('Converting image to base64:', imageUrl);
+    
+    // For Firebase Storage URLs, we can fetch directly from the server
+    const response = await fetch(imageUrl);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+    
+    const buffer = await response.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    
+    console.log('Image converted to base64, length:', base64.length);
+    
+    res.json({ base64 });
+  } catch (error) {
+    console.error("Error converting image to base64:", error);
+    res.status(500).json({ error: "Failed to convert image to base64" });
   }
 });
 

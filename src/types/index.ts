@@ -4,6 +4,7 @@ export interface GeneratedImage {
   prompt: string;
   parameters: ImageParameters;
   createdAt: Date;
+  isActive: boolean;
   views?: MultiViewImages;
 }
 

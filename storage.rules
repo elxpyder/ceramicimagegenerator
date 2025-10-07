@@ -1,4 +1,6 @@
 rules_version = '2';
+
+// Allows read/write access on all paths to any user
 service firebase.storage {
   match /b/{bucket}/o {
     // Allow authenticated users to upload and read their own files
@@ -12,8 +14,9 @@ service firebase.storage {
       allow write: if request.auth != null;
     }
     
-    // Allow authenticated users to upload and manage reference images
-    match /reference-images/{allPaths=**} {
+    // Allow all users to upload and manage images (both reference and generated)
+    // Set custom metadata to help with CORS
+    match /images/{allPaths=**} {
       allow read, write: if true;
     }
   }

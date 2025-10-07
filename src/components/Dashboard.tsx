@@ -1,29 +1,52 @@
 
 import { useImageContext } from '../context/ImageContext';
-import { Palette, Image, FolderOpen, TrendingUp } from 'lucide-react';
+import { Palette, Image, FolderOpen, TrendingUp, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { generatedImages, referenceImages } = useImageContext();
+  const { referenceImages } = useImageContext();
 
+  const totalImages = referenceImages.length;
+  const generatedCount = referenceImages.filter(img => img.name.startsWith('Generated:')).length;
+  const uploadedCount = referenceImages.filter(img => !img.name.startsWith('Generated:')).length;
+  const activeCount = referenceImages.filter(img => img.isActive).length;
+  
   const activeReferences = referenceImages.filter(img => img.isActive);
-  const recentImages = generatedImages.slice(0, 4);
+  const recentImages = referenceImages
+    .sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime())
+    .slice(0, 4);
 
   const stats = [
     {
-      name: 'Generated Images',
-      value: generatedImages.length,
+      name: 'Total Images',
+      value: totalImages,
       icon: Image,
       color: 'text-blue-600',
       bg: 'bg-blue-50',
-      href: '/gallery'
+      href: '/references'
+    },
+    {
+      name: 'Generated Images', 
+      value: generatedCount,
+      icon: Palette,
+      color: 'text-purple-600',
+      bg: 'bg-purple-50',
+      href: '/references'
     },
     {
       name: 'Active References',
-      value: activeReferences.length,
+      value: activeCount,
       icon: FolderOpen,
       color: 'text-green-600',
       bg: 'bg-green-50',
+      href: '/references'
+    },
+    {
+      name: 'Uploaded References',
+      value: uploadedCount,
+      icon: Upload,
+      color: 'text-orange-600',
+      bg: 'bg-orange-50',
       href: '/references'
     },
     {
@@ -104,16 +127,16 @@ export default function Dashboard() {
               <div key={image.id} className="image-card">
                 <img
                   src={image.url}
-                  alt={image.prompt}
+                  alt={image.name}
                   className="w-full h-48 object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <p className="text-white text-sm font-medium truncate">
-                      {image.prompt}
+                      {image.name}
                     </p>
                     <p className="text-white/80 text-xs">
-                      {image.createdAt.toLocaleDateString()}
+                      {image.uploadedAt.toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -152,7 +175,7 @@ export default function Dashboard() {
       )}
 
       {/* Getting Started */}
-      {generatedImages.length === 0 && (
+      {totalImages === 0 && (
         <div className="card text-center">
           <div className="py-8">
             <Palette className="w-16 h-16 text-gray-400 mx-auto mb-4" />
