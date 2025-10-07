@@ -1,63 +1,32 @@
 
 import { useImageContext } from '../context/ImageContext';
-import { Palette, Image, FolderOpen, TrendingUp, Upload } from 'lucide-react';
+import { Palette } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { referenceImages } = useImageContext();
+  const { 
+    referenceImages, 
+    generatedImages,
+    isLoading
+  } = useImageContext();
 
   const totalImages = referenceImages.length;
-  const generatedCount = referenceImages.filter(img => img.name.startsWith('Generated:')).length;
-  const uploadedCount = referenceImages.filter(img => !img.name.startsWith('Generated:')).length;
-  const activeCount = referenceImages.filter(img => img.isActive).length;
   
   const activeReferences = referenceImages.filter(img => img.isActive);
   const recentImages = referenceImages
     .sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime())
     .slice(0, 4);
 
-  const stats = [
-    {
-      name: 'Total Images',
-      value: totalImages,
-      icon: Image,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
-      href: '/references'
-    },
-    {
-      name: 'Generated Images', 
-      value: generatedCount,
-      icon: Palette,
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
-      href: '/references'
-    },
-    {
-      name: 'Active References',
-      value: activeCount,
-      icon: FolderOpen,
-      color: 'text-green-600',
-      bg: 'bg-green-50',
-      href: '/references'
-    },
-    {
-      name: 'Uploaded References',
-      value: uploadedCount,
-      icon: Upload,
-      color: 'text-orange-600',
-      bg: 'bg-orange-50',
-      href: '/references'
-    },
-    {
-      name: 'Total References',
-      value: referenceImages.length,
-      icon: TrendingUp,
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
-      href: '/references'
-    }
-  ];
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your images from cloud storage...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -78,34 +47,23 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Link
-              key={stat.name}
-              to={stat.href}
-              className="block group"
-            >
-              <div className="card hover:shadow-xl transition-shadow cursor-pointer">
-                <div className="flex items-center">
-                  <div className={`p-3 rounded-lg ${stat.bg} ${stat.color}`}>
-                    <Icon className="w-6 h-6" />
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
-                      {stat.name}
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {stat.value}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
+      {/* Quick Stats */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Collection</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <p className="text-2xl font-bold text-primary-600">{totalImages}</p>
+            <p className="text-sm text-gray-600">Reference Images</p>
+          </div>
+          <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <p className="text-2xl font-bold text-green-600">{activeReferences.length}</p>
+            <p className="text-sm text-gray-600">Active References</p>
+          </div>
+          <div className="text-center p-4 bg-gray-50 rounded-lg">
+            <p className="text-2xl font-bold text-blue-600">{generatedImages.length}</p>
+            <p className="text-sm text-gray-600">Generated Images</p>
+          </div>
+        </div>
       </div>
 
       {/* Recent Images */}
