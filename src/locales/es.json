@@ -18,6 +18,26 @@
     "title": "Generación de Imágenes",
     "label": "Describe tu modelo cerámico",
     "placeholder": "Describe la escultura cerámica que quieres crear. Sé específico sobre materiales, texturas, formas y estilos de referencia...",
+    "actionPrompt": {
+      "label": "Acción a realizar",
+      "placeholder": "Describe la acción que quieres realizar...",
+      "editDefault": "Agrega un nuevo objeto a la escena actual. Intégralo naturalmente con el entorno existente y mantén el estilo artístico, material, tipo de arte y nivel de calidad consistente con la pieza de arte principal ya presente",
+      "generateDefault": "Reemplaza la pieza de arte principal en la escena con un nuevo sujeto. Mantén el estilo artístico original, material, tipo de arte y nivel de calidad general de la pieza que está siendo reemplazada",
+      "shotDefault": "Genera una nueva toma de la escena actual desde una perspectiva diferente. Mantén todos los elementos existentes, su disposición, estilo artístico, material, tipo de arte y nivel de calidad. Solo el ángulo de la cámara y el encuadre deben cambiar"
+    },
+    "objectDescription": {
+      "label": "Descripción del objeto",
+      "placeholder": "Describe qué quieres agregar o modificar en la escena..."
+    },
+    "shotDescription": {
+      "label": "Descripción de la toma",
+      "placeholder": "Describe la toma deseada, como 'Una toma desde atrás y ligeramente a la derecha, mostrando más del entorno detrás de las esculturas principales, con un lente más amplio'..."
+    },
+    "modes": {
+      "generateNew": "Generar Nuevo",
+      "editImage": "Editar Imagen",
+      "newShot": "Nueva Toma"
+    },
     "referenceHint": "💡 {{count}} imagen de referencia será utilizada para guiar la generación",
     "referenceHint_plural": "💡 {{count}} imágenes de referencia serán utilizadas para guiar la generación",
     "generate": "Generar Imagen",

@@ -18,6 +18,26 @@
     "title": "Image Generation",
     "label": "Describe your ceramic model",
     "placeholder": "Describe the ceramic sculpture you want to create. Be specific about materials, textures, shapes, and any reference styles...",
+    "actionPrompt": {
+      "label": "Action to perform",
+      "placeholder": "Describe the action you want to perform...",
+      "editDefault": "Add a new object to the current scene. Integrate it naturally with the existing environment and maintain the art style, material, type of art, and quality level consistent with the primary art piece already present",
+      "generateDefault": "Replace the main art piece in the scene with a new subject. Maintain the original art style, material, type of art, and overall quality level of the piece being replaced",
+      "shotDefault": "Generate a new shot of the current scene from a different perspective. Maintain all existing elements, their arrangement, art style, material, type of art, and quality level. Only the camera angle and framing should change"
+    },
+    "objectDescription": {
+      "label": "Object description",
+      "placeholder": "Describe what you want to add or modify in the scene..."
+    },
+    "shotDescription": {
+      "label": "Shot description",
+      "placeholder": "Describe the desired shot, like 'A shot from the back and slightly to the right, showing more of the environment behind the main sculptures, with a wider lens'..."
+    },
+    "modes": {
+      "generateNew": "Generate New",
+      "editImage": "Edit Image",
+      "newShot": "New Shot"
+    },
     "referenceHint": "💡 {{count}} reference image will be used to guide the generation",
     "referenceHint_plural": "💡 {{count}} reference images will be used to guide the generation",
     "generate": "Generate Image",
