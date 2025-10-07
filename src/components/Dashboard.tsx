@@ -2,6 +2,8 @@
 import { useImageContext } from '../context/ImageContext';
 import { Palette } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import ImageLightbox from './ImageLightbox';
 
 export default function Dashboard() {
   const { 
@@ -9,6 +11,8 @@ export default function Dashboard() {
     generatedImages,
     isLoading
   } = useImageContext();
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const totalImages = referenceImages.length;
   
@@ -16,6 +20,27 @@ export default function Dashboard() {
   const recentImages = referenceImages
     .sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime())
     .slice(0, 4);
+
+  const openLightbox = (imageIndex: number) => {
+    setLightboxIndex(imageIndex);
+    setIsLightboxOpen(true);
+  };
+
+  const closeLightbox = () => {
+    setIsLightboxOpen(false);
+  };
+
+  const goToPrevious = () => {
+    setLightboxIndex((prev) => (prev > 0 ? prev - 1 : recentImages.length - 1));
+  };
+
+  const goToNext = () => {
+    setLightboxIndex((prev) => (prev < recentImages.length - 1 ? prev + 1 : 0));
+  };
+
+  const goToIndex = (index: number) => {
+    setLightboxIndex(index);
+  };
 
   if (isLoading) {
     return (
@@ -81,15 +106,16 @@ export default function Dashboard() {
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {recentImages.map((image) => (
-              <div key={image.id} className="image-card">
+            {recentImages.map((image, index) => (
+              <div key={image.id} className="image-card group relative">
                 <img
                   src={image.url}
                   alt={image.name}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-48 object-cover cursor-pointer"
+                  onClick={() => openLightbox(index)}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-auto">
                     <p className="text-white text-sm font-medium truncate">
                       {image.name}
                     </p>
@@ -160,6 +186,17 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        images={recentImages}
+        currentIndex={lightboxIndex}
+        isOpen={isLightboxOpen}
+        onClose={closeLightbox}
+        onPrevious={goToPrevious}
+        onNext={goToNext}
+        onGoToIndex={goToIndex}
+      />
     </div>
   );
 }

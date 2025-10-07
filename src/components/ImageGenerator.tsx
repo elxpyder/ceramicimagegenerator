@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { useImageContext } from '../context/ImageContext';
 import { useNotification } from '../context/NotificationContext';
 import { GeneratedImage } from '../types';
-import { RotateCcw, Download, Edit } from 'lucide-react';
+import { RotateCcw, Download, Edit, Plus, EyeOff } from 'lucide-react';
 
 export default function ImageGenerator() {
   const { t } = useTranslation();
-  const { addGeneratedImage, referenceImages, isGenerating, setIsGenerating, convertImageToBase64 } = useImageContext();
+  const { addGeneratedImage, referenceImages, isGenerating, setIsGenerating, convertImageToBase64, toggleReferenceImage } = useImageContext();
   const { addToast } = useNotification();
   const navigate = useNavigate();
 
@@ -272,30 +272,56 @@ export default function ImageGenerator() {
         {/* Active References Sidebar */}
         <div className="space-y-6">
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {t('references.active')}
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {t('references.active')}
+              </h3>
+              <button
+                onClick={() => navigate('/references')}
+                className="inline-flex items-center space-x-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add</span>
+              </button>
+            </div>
             {allActiveReferences.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
                 {allActiveReferences.map(ref => (
-                  <div key={ref.id} className="aspect-square relative">
+                  <div key={ref.id} className="aspect-square relative group">
                     <img
                       src={ref.url}
                       alt={ref.name}
                       className="w-full h-full object-cover rounded-lg shadow-sm"
                     />
                     {editMode && (
-                      <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                      <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
                         Edit
                       </div>
                     )}
+                    {/* Deactivate button */}
+                    <button
+                      onClick={() => toggleReferenceImage(ref.id)}
+                      className="absolute top-1 right-1 p-1 bg-red-500/90 hover:bg-red-500 rounded-md shadow-sm transition-colors opacity-0 group-hover:opacity-100"
+                      title="Deactivate"
+                    >
+                      <EyeOff className="w-3 h-3 text-white" />
+                    </button>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">
-                {t('references.noActive')}
-              </p>
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-sm mb-3">
+                  {t('references.noActive')}
+                </p>
+                <button
+                  onClick={() => navigate('/references')}
+                  className="inline-flex items-center space-x-2 text-sm bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-lg font-medium transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add References</span>
+                </button>
+              </div>
             )}
           </div>
 

@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useImageContext } from '../context/ImageContext';
-import { Upload, Image, Trash2, Eye, EyeOff, Download } from 'lucide-react';
+import { Upload, Image, Trash2, Eye, EyeOff, Download, Info } from 'lucide-react';
+import ImageDetailModal from './ImageDetailModal';
+import ImageLightbox from './ImageLightbox';
 
 export default function ReferenceManager() {
   const { 
@@ -14,6 +16,10 @@ export default function ReferenceManager() {
   const [dragOver, setDragOver] = useState(false);
   const [viewMode, setViewMode] = useState<'all' | 'references' | 'generated'>('all');
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files) return;
@@ -57,6 +63,40 @@ export default function ReferenceManager() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Modal and Lightbox handlers
+  const openImageDetail = (image: any) => {
+    setSelectedImage(image);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedImage(null);
+  };
+
+  const openLightbox = (imageIndex: number) => {
+    console.log('openLightbox called with index:', imageIndex);
+    setLightboxIndex(imageIndex);
+    setIsLightboxOpen(true);
+    console.log('Lightbox state should be:', { index: imageIndex, open: true });
+  };
+
+  const closeLightbox = () => {
+    setIsLightboxOpen(false);
+  };
+
+  const goToPrevious = () => {
+    setLightboxIndex((prev) => (prev > 0 ? prev - 1 : displayImages.length - 1));
+  };
+
+  const goToNext = () => {
+    setLightboxIndex((prev) => (prev < displayImages.length - 1 ? prev + 1 : 0));
+  };
+
+  const goToIndex = (index: number) => {
+    setLightboxIndex(index);
   };
 
   // Filter images based on view mode
@@ -214,17 +254,21 @@ export default function ReferenceManager() {
         </div>
       ) : (
         <div className="gallery-grid">
-          {displayImages.map((image) => (
+          {displayImages.map((image, index) => (
             <div key={image.id} className="image-card group relative">
               <img
                 src={image.url}
                 alt={image.name}
                 className={`
-                  w-full h-64 object-cover transition-all
+                  w-full h-64 object-cover transition-all cursor-pointer
                   ${image.type === 'reference' && image.isActive ? 'opacity-100' : 
                     image.type === 'reference' && !image.isActive ? 'opacity-50 grayscale' :
                     'opacity-100'}
                 `}
+                onClick={() => {
+                  console.log('Image clicked, opening lightbox at index:', index);
+                  openLightbox(index);
+                }}
               />
 
               {/* Type and Status Indicators */}
@@ -243,11 +287,26 @@ export default function ReferenceManager() {
               </div>
 
               {/* Overlay Controls */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="absolute top-3 right-3 flex flex-col space-y-2">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                <div className="absolute top-3 right-3 flex flex-col space-y-2 pointer-events-auto">
+                  {/* Image Details Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openImageDetail(image);
+                    }}
+                    className="p-2 bg-gray-500/90 hover:bg-gray-500 rounded-lg shadow-sm transition-colors"
+                    title="View Details"
+                  >
+                    <Info className="w-4 h-4 text-white" />
+                  </button>
+
                   {/* Toggle activate/deactivate for all images */}
                   <button
-                    onClick={() => toggleReferenceImage(image.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleReferenceImage(image.id);
+                    }}
                     className={`
                       p-2 rounded-lg shadow-sm transition-colors
                       ${image.isActive
@@ -266,10 +325,13 @@ export default function ReferenceManager() {
                   
                   {/* Download */}
                   <button
-                    onClick={() => handleDownload(
-                      image.url, 
-                      `${image.type}_${image.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.jpg`
-                    )}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownload(
+                        image.url, 
+                        `${image.type}_${image.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.jpg`
+                      );
+                    }}
                     className="p-2 bg-blue-500/90 hover:bg-blue-500 rounded-lg shadow-sm transition-colors"
                     title="Download"
                   >
@@ -278,7 +340,10 @@ export default function ReferenceManager() {
                   
                   {/* Delete */}
                   <button
-                    onClick={() => removeReferenceImage(image.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeReferenceImage(image.id);
+                    }}
                     className="p-2 bg-red-500/90 hover:bg-red-500 rounded-lg shadow-sm transition-colors"
                     title="Delete"
                   >
@@ -286,7 +351,7 @@ export default function ReferenceManager() {
                   </button>
                 </div>
 
-                <div className="absolute bottom-0 left-0 right-0 p-4">
+                <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-auto">
                   <p className="text-white font-medium text-sm line-clamp-2">
                     {image.name}
                   </p>
@@ -314,6 +379,29 @@ export default function ReferenceManager() {
           <li>• <strong>Iterate and improve:</strong> Build a library of references over time</li>
         </ul>
       </div>
+
+      {/* Image Detail Modal */}
+      {selectedImage && (
+        <ImageDetailModal
+          image={selectedImage}
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          onToggleActive={toggleReferenceImage}
+          onDownload={handleDownload}
+          onDelete={removeReferenceImage}
+        />
+      )}
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        images={displayImages}
+        currentIndex={lightboxIndex}
+        isOpen={isLightboxOpen}
+        onClose={closeLightbox}
+        onPrevious={goToPrevious}
+        onNext={goToNext}
+        onGoToIndex={goToIndex}
+      />
     </div>
   );
 }
